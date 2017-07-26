@@ -16,7 +16,7 @@
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE. 
+// THE SOFTWARE.
 
 
 /*******************************************************************************
@@ -143,6 +143,13 @@ bool updateDisplay = false;
  ******************************************************************************/
 void issueSubscribes()
 {
+    // Add a filter so we don't get spammed with unwanted OSC messages from Eos
+    OSCMessage filter("/eos/filter/add");
+    filter.add("/eos/out/pantilt*");
+    SLIPSerial.beginPacket();
+    filter.send(SLIPSerial);
+    SLIPSerial.endPacket();
+
     // subscribe to Eos pan & tilt updates
     OSCMessage subPan("/eos/subscribe/param/pan");
     subPan.add(SUBSCRIBE);
