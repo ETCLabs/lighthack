@@ -53,7 +53,13 @@
 #include <OSCMatch.h>
 #include <OSCMessage.h>
 #include <OSCTiming.h>
-#include <SLIPEncodedSerial.h>
+#ifdef BOARD_HAS_USB_SERIAL
+  #include <SLIPEncodedUSBSerial.h>
+  SLIPEncodedUSBSerial SLIPSerial(thisBoardsSerialUSB);
+  #else
+  #include <SLIPEncodedSerial.h>
+  SLIPEncodedSerial SLIPSerial(Serial);
+  #endif
 #include <LiquidCrystal.h>
 #include <string.h>
 
@@ -120,7 +126,6 @@ struct Encoder tiltWheel;
 /*******************************************************************************
  * Global Variables
  ******************************************************************************/
-SLIPEncodedSerial SLIPSerial(Serial);
 
 // initialize the library with the numbers of the interface pins
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
