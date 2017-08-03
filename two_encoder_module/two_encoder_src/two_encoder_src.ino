@@ -435,7 +435,12 @@ void setup()
     while (!Serial)
     ;
 #endif
-
+  
+    // this is necessary for reconnecting a device because it need some timme for the serial port to get open, but meanwhile the handshake message was send from eos
+    SLIPSerial.beginPacket();
+    SLIPSerial.write((const uint8_t*)HANDSHAKE_REPLY.c_str(), (size_t)HANDSHAKE_REPLY.length());
+    SLIPSerial.endPacket();
+ 
     initEncoder(&panWheel, A0, A1, A2, PAN_DIR);
     initEncoder(&tiltWheel, A3, A4, A5, TILT_DIR);
 
