@@ -115,10 +115,10 @@ struct Encoder
     uint8_t pinB;
     uint8_t buttonPin;
     uint8_t buttonState;
-    int pinAPrevious;
-    int pinBPrevious;
+    uint8_t pinAPrevious;
+    uint8_t pinBPrevious;
     float pos;
-    int direction;
+    uint8_t direction;
 };
 struct Encoder panWheel;
 struct Encoder tiltWheel;
@@ -259,7 +259,7 @@ void displayStatus()
  * Return Value: void
  *
  ******************************************************************************/
-void initEncoder(struct Encoder* encoder, int32_t pinA, int32_t pinB, int32_t buttonPin, int direction)
+void initEncoder(struct Encoder* encoder, uint8_t pinA, uint8_t pinB, uint8_t buttonPin, uint8_t direction)
 {
     encoder->pinA = pinA;
     encoder->pinB = pinB;
@@ -293,8 +293,8 @@ void initEncoder(struct Encoder* encoder, int32_t pinA, int32_t pinB, int32_t bu
 int8_t updateEncoder(struct Encoder* encoder)
 {
     int8_t encoderMotion = 0;
-    int pinACurrent = digitalRead(encoder->pinA);
-    int pinBCurrent = digitalRead(encoder->pinB);
+    uint8_t pinACurrent = digitalRead(encoder->pinA);
+    uint8_t pinBCurrent = digitalRead(encoder->pinB);
 
     // has the encoder moved at all?
     if (encoder->pinAPrevious != pinACurrent)
@@ -385,8 +385,8 @@ void sendKeyPress(bool down, String key)
  ******************************************************************************/
 void checkButtons()
 {
-    static int nextKeyState = HIGH;
-    static int lastKeyState = HIGH;
+    static uint8_t nextKeyState = HIGH;
+    static uint8_t lastKeyState = HIGH;
 
     // Has the button state changed
     if (digitalRead(NEXT_BTN) != nextKeyState)
