@@ -53,7 +53,13 @@
 #include <OSCMatch.h>
 #include <OSCMessage.h>
 #include <OSCTiming.h>
-#include <SLIPEncodedSerial.h>
+#ifdef BOARD_HAS_USB_SERIAL
+  #include <SLIPEncodedUSBSerial.h>
+  SLIPEncodedUSBSerial SLIPSerial(thisBoardsSerialUSB);
+  #else
+  #include <SLIPEncodedSerial.h>
+  SLIPEncodedSerial SLIPSerial(Serial);
+  #endif
 #include <LiquidCrystal.h>
 #include <string.h>
 
@@ -112,7 +118,7 @@ struct Encoder
     int pinAPrevious;
     int pinBPrevious;
     float pos;
-    int direction;
+    uint8_t direction;
 };
 struct Encoder panWheel;
 struct Encoder tiltWheel;
@@ -120,7 +126,6 @@ struct Encoder tiltWheel;
 /*******************************************************************************
  * Global Variables
  ******************************************************************************/
-SLIPEncodedSerial SLIPSerial(Serial);
 
 // initialize the library with the numbers of the interface pins
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
@@ -254,7 +259,7 @@ void displayStatus()
  * Return Value: void
  *
  ******************************************************************************/
-void initEncoder(struct Encoder* encoder, int32_t pinA, int32_t pinB, int32_t buttonPin, int direction)
+void initEncoder(struct Encoder* encoder, uint8_t pinA, uint8_t pinB, uint8_t buttonPin, uint8_t direction)
 {
     encoder->pinA = pinA;
     encoder->pinB = pinB;
@@ -435,7 +440,12 @@ void setup()
     while (!Serial)
     ;
 #endif
-
+  
+    // this is necessary for reconnecting a device because it need some timme for the serial port to get open, but meanwhile the handshake message was send from eos
+    SLIPSerial.beginPacket();
+    SLIPSerial.write((const uint8_t*)HANDSHAKE_REPLY.c_str(), (size_t)HANDSHAKE_REPLY.length());
+    SLIPSerial.endPacket();
+ 
     initEncoder(&panWheel, A0, A1, A2, PAN_DIR);
     initEncoder(&tiltWheel, A3, A4, A5, TILT_DIR);
 
