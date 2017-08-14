@@ -445,6 +445,8 @@ void setup()
     SLIPSerial.beginPacket();
     SLIPSerial.write((const uint8_t*)HANDSHAKE_REPLY.c_str(), (size_t)HANDSHAKE_REPLY.length());
     SLIPSerial.endPacket();
+    // Let Eos know we want updates on some things
+    issueSubscribes();
  
     initEncoder(&panWheel, A0, A1, A2, PAN_DIR);
     initEncoder(&tiltWheel, A3, A4, A5, TILT_DIR);
