@@ -436,8 +436,12 @@ void setup()
 {
     SLIPSerial.begin(115200);
 // This is a hack around an arduino bug. It was taken from the OSC library examples
-    while (!Serial);
-  
+    #ifdef BOARD_HAS_USB_SERIAL
+      while (!SerialUSB);
+      #else
+      while (!Serial);
+    #endif
+ 
     // this is necessary for reconnecting a device because it need some timme for the serial port to get open, but meanwhile the handshake message was send from eos
     SLIPSerial.beginPacket();
     SLIPSerial.write((const uint8_t*)HANDSHAKE_REPLY.c_str(), (size_t)HANDSHAKE_REPLY.length());
