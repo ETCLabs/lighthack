@@ -5,6 +5,8 @@ Current designs use the Arduino hardware/software platform to send and receive O
 
 Each DIY widget has its own subfolder. This folder typically contains an assembly instructions document which is a good jumping-off point. It also contains the Arduino sketch and other supporting documentation.
 
+[Supported OSC Commands](https://github.com/ETCLabs/EosSyncLib/blob/master/Supported%20OSC%20Commands.pdf)
+
 ## About this ETCLabs Project
 The OSCHardware projects (developed by a combination of end users and ETC employees in their free time) are designed to interact with Electronic Theatre Controls products. This is not official ETC hardware or software. For challenges using, integrating, compiling, or modifying items in this project, we encourage posting on the [Issues](https://github.com/ElectronicTheatreControlsLabs/OSCHardware/issues) page. ETC Support is not familiar with this project and will not be able to assist if issues arise. (Hopefully issues won't happen, and you'll have a lot of fun with these tools and toys!)
 
