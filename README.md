@@ -1,7 +1,7 @@
 # OSCHardware
 This repository contains the source and documentation for LightHack, a new ETC project designed to engage with the DIY community. The LightHack project is centered around widgets that you assemble from scratch, which communicate via OSC with ETC's Eos software.
 
-Current designs use the Arduino hardware/software platform to send and receive OSC to/from Eos using a USB COM port. Eos supports this functionality (on consoles and Nomad Windows) in version 2.6.1 and newer. Nomad Mac support is targeted for the near future.
+Current designs use the Arduino hardware/software platform to send and receive OSC to/from Eos using a USB COM port. Eos supports this functionality (on Windows 7 consoles and Nomad Windows) in version 2.6.1 and newer. Nomad Mac support is targeted for the near future. Windows XP console support is not planned for this project (but you can [upgrade your Windows XP console to Windows 7](http://www.etcconnect.com/Support/Articles/Windows-7-Upgrade-Eligibility.aspx) to make it compatible).
 
 Each DIY widget has its own subfolder. This folder typically contains an assembly instructions document which is a good jumping-off point. It also contains the Arduino sketch and other supporting documentation.
 
