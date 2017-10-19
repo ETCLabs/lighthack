@@ -23,7 +23,7 @@
  *
  *   Electronic Theatre Controls
  *
- *   LightHack_ - Two Encoder Three Button Module
+ *   lighthack - Box 1
  *
  *   (c) 2017 by ETC
  *
@@ -38,9 +38,13 @@
  *
  *  Revision History
  *
- *  yyyy-mm-dd   Vxx     By_Who                 Comment
+ *  yyyy-mm-dd   Vxx      By_Who                 Comment
  *
- *  2017-07-21   V1.000  Ethan Oswald Massey    Original creation
+ *  2017-07-21   1.0.0.1  Ethan Oswald Massey    Original creation
+ *
+ *  2017-10-19   1.0.0.2  Sam Kearney            Fix build errors on some
+ *                                               Arduino platforms. Change
+ *                                               OSC subscribe parameters
  *
  ******************************************************************************/
 
@@ -54,54 +58,45 @@
 #include <OSCMessage.h>
 #include <OSCTiming.h>
 #ifdef BOARD_HAS_USB_SERIAL
-  #include <SLIPEncodedUSBSerial.h>
-  SLIPEncodedUSBSerial SLIPSerial(thisBoardsSerialUSB);
-  #else
-  #include <SLIPEncodedSerial.h>
-  SLIPEncodedSerial SLIPSerial(Serial);
-  #endif
+#include <SLIPEncodedUSBSerial.h>
+SLIPEncodedUSBSerial SLIPSerial(thisBoardsSerialUSB);
+#else
+#include <SLIPEncodedSerial.h>
+SLIPEncodedSerial SLIPSerial(Serial);
+#endif
 #include <LiquidCrystal.h>
 #include <string.h>
 
  /*******************************************************************************
   * Macros and Constants
   ******************************************************************************/
-#define LCD_CHARS   16
-#define LCD_LINES   2   // Currently assume at least 2 lines
+#define LCD_CHARS           16
+#define LCD_LINES           2   // Currently assume at least 2 lines
 
-#define PAN_POS     4
-#define TILT_POS    5
-#define NEXT_BTN    6
-#define LAST_BTN    7
-#define SHIFT_BTN   8
+#define NEXT_BTN            6
+#define LAST_BTN            7
+#define SHIFT_BTN           8
 
-#define SUBSCRIBE   1
-#define UNSUBSCRIBE 0
+#define SUBSCRIBE           ((int32_t)1)
+#define UNSUBSCRIBE         ((int32_t)0)
 
-#define EDGE_DOWN   1
-#define EDGE_UP     0
+#define EDGE_DOWN           ((int32_t)1)
+#define EDGE_UP             ((int32_t)0)
 
 // These define which direction is "forward" for an encoder
-#define FORWARD     0
-#define REVERSE     1
+#define FORWARD             0
+#define REVERSE             1
 
 // Change these values to switch which direction increase/decrease pan/tilt
-#define PAN_DIR     FORWARD
-#define TILT_DIR    FORWARD
+#define PAN_DIR             FORWARD
+#define TILT_DIR            FORWARD
 
-#define SIG_DIGITS  3   // Number of significant digits displayed
+#define SIG_DIGITS          3   // Number of significant digits displayed
 
-#define OSC_BUF_MAX_SIZE 512
+#define OSC_BUF_MAX_SIZE    512
 
 const String HANDSHAKE_QUERY = "ETCOSC?";
 const String HANDSHAKE_REPLY = "OK";
-
-const String EOS_KEY = "/eos/key/";
-const String EOS_NEXT_KEY = "NEXT";
-const String EOS_LAST_KEY = "LAST";
-
-const String EOS_WHEEL = "/eos/wheel";
-const String EOS_PT_ADDRESS = "/eos/out/pantilt";
 
 /*******************************************************************************
  * Local Types
@@ -150,7 +145,7 @@ void issueSubscribes()
 {
     // Add a filter so we don't get spammed with unwanted OSC messages from Eos
     OSCMessage filter("/eos/filter/add");
-    filter.add("/eos/out/pantilt*");
+    filter.add("/eos/out/param/*");
     SLIPSerial.beginPacket();
     filter.send(SLIPSerial);
     SLIPSerial.endPacket();
@@ -170,21 +165,25 @@ void issueSubscribes()
 }
 
 /*******************************************************************************
- * Given a valid OSCMessage (relavent to Pan/Tilt), we update our Encoder struct
+ * Given a valid OSCMessage (relevant to Pan/Tilt), we update our Encoder struct
  * with the new position information.
  *
  * Parameters:
  *  msg - The OSC message we will use to update our internal data
- *  addressOffset - Unused (allows for mulitple nested roots)
+ *  addressOffset - Unused (allows for multiple nested roots)
  *
  * Return Value: void
  *
  ******************************************************************************/
-void parseWheelUpdate(OSCMessage& msg, int addressOffset)
+void parsePanUpdate(OSCMessage& msg, int addressOffset)
 {
-    panWheel.pos  = msg.getOSCData(PAN_POS)->getFloat();
-    tiltWheel.pos = msg.getOSCData(TILT_POS)->getFloat();
+    panWheel.pos = msg.getOSCData(0)->getFloat();
+    updateDisplay = true;
+}
 
+void parseTiltUpdate(OSCMessage& msg, int addressOffset)
+{
+    tiltWheel.pos = msg.getOSCData(0)->getFloat();
     updateDisplay = true;
 }
 
@@ -217,8 +216,9 @@ void parseOSCMessage(String& msg)
         // prepare the message for routing by filling an OSCMessage object with our message string
         OSCMessage oscmsg;
         oscmsg.fill((uint8_t*)msg.c_str(), (int)msg.length());
-        // route pan/tilt messages to the parseWheelUpdate function
-        oscmsg.route(EOS_PT_ADDRESS.c_str(), parseWheelUpdate);
+        // route pan/tilt messages to the relevant update function
+        oscmsg.route("/eos/out/param/pan", parsePanUpdate);
+        oscmsg.route("/eos/out/param/tilt", parseTiltUpdate);
     }
 }
 
@@ -247,13 +247,13 @@ void displayStatus()
 }
 
 /*******************************************************************************
- * Initalizes a given encoder struct to the requested parameters.
+ * Initializes a given encoder struct to the requested parameters.
  *
  * Parameters:
- *  encoder - Pointer to the encoder we will be inializing
- *  pinA - Where the A pin is connected to the arduino
- *  pinB - Where the B pin is connected to the arduino
- *  buttonPin - Where the button pin is connected to the arduino
+ *  encoder - Pointer to the encoder we will be initializing
+ *  pinA - Where the A pin is connected to the Arduino
+ *  pinB - Where the B pin is connected to the Arduino
+ *  buttonPin - Where the button pin is connected to the Arduino
  *  direction - Determines if clockwise or counterclockwise is "forward"
  *
  * Return Value: void
@@ -313,7 +313,7 @@ int8_t updateEncoder(struct Encoder* encoder)
 }
 
 /*******************************************************************************
- * Sends a message to Eos informing them of a wheels movement.
+ * Sends a message to Eos informing them of a wheel movement.
  *
  * Parameters:
  *  type - the type of wheel that's moving (i.e. pan or tilt)
@@ -324,12 +324,12 @@ int8_t updateEncoder(struct Encoder* encoder)
  ******************************************************************************/
 void sendWheelMove(WHEEL_TYPE type, float ticks)
 {
-    String wheelMsg(EOS_WHEEL);
+    String wheelMsg("/eos/wheel");
 
     if (digitalRead(SHIFT_BTN) == LOW)
-      wheelMsg.concat("/fine");
+        wheelMsg.concat("/fine");
     else
-      wheelMsg.concat("/coarse");
+        wheelMsg.concat("/coarse");
 
     if (type == PAN)
         wheelMsg.concat("/pan");
@@ -347,7 +347,7 @@ void sendWheelMove(WHEEL_TYPE type, float ticks)
 }
 
 /*******************************************************************************
- * Sends a message to Eos informing them of a keys press.
+ * Sends a message to Eos informing them of a key press.
  *
  * Parameters:
  *  down - whether a key has been pushed down (true) or released (false)
@@ -358,7 +358,7 @@ void sendWheelMove(WHEEL_TYPE type, float ticks)
  ******************************************************************************/
 void sendKeyPress(bool down, String key)
 {
-    key = EOS_KEY + key;
+    key = "/eos/key/" + key;
     OSCMessage keyMsg(key.c_str());
 
     if (down)
@@ -372,9 +372,9 @@ void sendKeyPress(bool down, String key)
 }
 
 /*******************************************************************************
- * Checks the status of all the buttons relavent to Eos (i.e. Next & Last)
+ * Checks the status of all the buttons relevant to Eos (i.e. Next & Last)
  *
- * NOTE: This does not check the shift key. The shift key is used in tandom with
+ * NOTE: This does not check the shift key. The shift key is used in tandem with
  * the encoder to determine coarse/fine mode and thus does not report to Eos
  * directly.
  *
@@ -394,12 +394,12 @@ void checkButtons()
         // Notify Eos of this key press
         if (nextKeyState == LOW)
         {
-            sendKeyPress(false, EOS_NEXT_KEY);
+            sendKeyPress(false, "NEXT");
             nextKeyState = HIGH;
         }
         else
         {
-            sendKeyPress(true, EOS_NEXT_KEY);
+            sendKeyPress(true, "NEXT");
             nextKeyState = LOW;
         }
     }
@@ -408,12 +408,12 @@ void checkButtons()
     {
         if (lastKeyState == LOW)
         {
-            sendKeyPress(false, EOS_LAST_KEY);
+            sendKeyPress(false, "LAST");
             lastKeyState = HIGH;
         }
         else
         {
-            sendKeyPress(true, EOS_LAST_KEY);
+            sendKeyPress(true, "LAST");
             lastKeyState = LOW;
         }
     }
@@ -421,11 +421,11 @@ void checkButtons()
 
 /*******************************************************************************
  * Here we setup our encoder, lcd, and various input devices. We also prepare
- * to comunicate OSC with Eos by setting up SLIPSerial. Once we are done with
+ * to communicate OSC with Eos by setting up SLIPSerial. Once we are done with
  * setup() we pass control over to loop() and never call setup() again.
  *
  * NOTE: This function is the entry function. This is where control over the
- * arduino is passed to us (the end user).
+ * Arduino is passed to us (the end user).
  *
  * Parameters: none
  *
@@ -435,20 +435,23 @@ void checkButtons()
 void setup()
 {
     SLIPSerial.begin(115200);
-// This is a hack around an arduino bug. It was taken from the OSC library examples
-    #ifdef BOARD_HAS_USB_SERIAL
-      while (!SerialUSB);
-      #else
-      while (!Serial);
-    #endif
- 
-    // this is necessary for reconnecting a device because it need some timme for the serial port to get open, but meanwhile the handshake message was send from eos
+    // This is a hack around an Arduino bug. It was taken from the OSC library
+    //examples
+#ifdef BOARD_HAS_USB_SERIAL
+    while (!SerialUSB);
+#else
+    while (!Serial);
+#endif
+
+    // This is necessary for reconnecting a device because it needs some time
+    // for the serial port to open, but meanwhile the handshake message was
+    // sent from Eos
     SLIPSerial.beginPacket();
     SLIPSerial.write((const uint8_t*)HANDSHAKE_REPLY.c_str(), (size_t)HANDSHAKE_REPLY.length());
     SLIPSerial.endPacket();
     // Let Eos know we want updates on some things
     issueSubscribes();
- 
+
     initEncoder(&panWheel, A0, A1, A2, PAN_DIR);
     initEncoder(&tiltWheel, A3, A4, A5, TILT_DIR);
 
@@ -465,10 +468,11 @@ void setup()
 /*******************************************************************************
  * Here we service, monitor, and otherwise control all our peripheral devices.
  * First, we retrieve the status of our encoders and buttons and update Eos.
- * Next, we check if there are any OSC message for us.
+ * Next, we check if there are any OSC messages for us.
  * Finally, we update our display (if an update is necessary)
  *
- * NOTE: This function is our main loop and thus we will loop here forever.
+ * NOTE: This function is our main loop and thus this function will be called
+ * repeatedly forever
  *
  * Parameters: none
  *
@@ -509,6 +513,6 @@ void loop()
     }
 
     if (updateDisplay)
-      displayStatus();
+        displayStatus();
 }
 
