@@ -108,8 +108,6 @@ struct Encoder
 {
     uint8_t pinA;
     uint8_t pinB;
-    uint8_t buttonPin;
-    uint8_t buttonState;
     int pinAPrevious;
     int pinBPrevious;
     float pos;
@@ -253,27 +251,23 @@ void displayStatus()
  *  encoder - Pointer to the encoder we will be initializing
  *  pinA - Where the A pin is connected to the Arduino
  *  pinB - Where the B pin is connected to the Arduino
- *  buttonPin - Where the button pin is connected to the Arduino
  *  direction - Determines if clockwise or counterclockwise is "forward"
  *
  * Return Value: void
  *
  ******************************************************************************/
-void initEncoder(struct Encoder* encoder, uint8_t pinA, uint8_t pinB, uint8_t buttonPin, uint8_t direction)
+void initEncoder(struct Encoder* encoder, uint8_t pinA, uint8_t pinB, uint8_t direction)
 {
     encoder->pinA = pinA;
     encoder->pinB = pinB;
-    encoder->buttonPin = buttonPin;
     encoder->pos = 0;
     encoder->direction = direction;
 
     pinMode(pinA, INPUT_PULLUP);
     pinMode(pinB, INPUT_PULLUP);
-    pinMode(buttonPin, INPUT_PULLUP);
 
     encoder->pinAPrevious = digitalRead(pinA);
     encoder->pinBPrevious = digitalRead(pinB);
-    encoder->buttonState = digitalRead(buttonPin);
 }
 
 /*******************************************************************************
@@ -452,8 +446,8 @@ void setup()
     // Let Eos know we want updates on some things
     issueSubscribes();
 
-    initEncoder(&panWheel, A0, A1, A2, PAN_DIR);
-    initEncoder(&tiltWheel, A3, A4, A5, TILT_DIR);
+    initEncoder(&panWheel, A0, A1, PAN_DIR);
+    initEncoder(&tiltWheel, A3, A4, TILT_DIR);
 
     lcd.begin(LCD_CHARS, LCD_LINES);
     lcd.clear();
