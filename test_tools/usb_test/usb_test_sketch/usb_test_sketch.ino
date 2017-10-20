@@ -23,7 +23,7 @@
  *
  *   Electronic Theatre Controls
  *
- *   LightHack - USB Test Sketch
+ *   lighthack - USB Test Sketch
  *
  *   (c) 2017 by ETC
  *
@@ -38,9 +38,9 @@
  *
  *  Revision History
  *
- *  yyyy-mm-dd   Vxx     By_Who                 Comment
+ *  yyyy-mm-dd   Vxx        By_Who                 Comment
  *
- *  2017-09-05   V1.000  Sam Kearney            Original creation
+ *  2017-10-20   V1.0.0.1   Sam Kearney            Original creation
  *
  ******************************************************************************/
 
@@ -104,12 +104,9 @@ void parseOSCMessage(String& msg)
 }
 
 /*******************************************************************************
- * Here we prepare to comunicate OSC with Eos by setting up SLIPSerial. Once we
- * are done with setup() we pass control over to loop() and never call setup()
- * again.
- *
- * NOTE: This function is the entry function. This is where control over the
- * arduino is passed to us (the end user).
+ * Here we prepare to communicate OSC with Eos by setting up SLIPSerial. Once
+ * we are done with setup() we pass control over to loop() and never call
+ * setup() again.
  *
  * Parameters: none
  *
@@ -119,26 +116,24 @@ void parseOSCMessage(String& msg)
 void setup()
 {
     SLIPSerial.begin(115200);
-    // This is a hack around an arduino bug. It was taken from the OSC library examples
+    // This is a hack around an Arduino bug. It was taken from the OSC library
+    // examples
 #ifdef BOARD_HAS_USB_SERIAL
     while (!SerialUSB);
 #else
     while (!Serial);
 #endif
 
-    // this is necessary for reconnecting a device because it need some timme for the serial port to get open, but meanwhile the handshake message was send from eos
+    // this is necessary for reconnecting a device because it needs some time
+    // for the serial port to open, but meanwhile the handshake message was
+    // sent from Eos
     SLIPSerial.beginPacket();
     SLIPSerial.write((const uint8_t*)HANDSHAKE_REPLY.c_str(), (size_t)HANDSHAKE_REPLY.length());
     SLIPSerial.endPacket();
 }
 
 /*******************************************************************************
- * Here we service, monitor, and otherwise control all our peripheral devices.
- * First, we retrieve the status of our encoders and buttons and update Eos.
- * Next, we check if there are any OSC message for us.
- * Finally, we update our display (if an update is necessary)
- *
- * NOTE: This function is our main loop and thus we will loop here forever.
+ * Main loop: manage OSC I/O. Send a ping command to Eos every second.
  *
  * Parameters: none
  *
@@ -149,7 +144,7 @@ void loop()
 {
     static String curMsg;
     static unsigned long lastTimeSent;
-    static int pingNum;
+    static int32_t pingNum;
     unsigned long curTime;
     int size;
 
