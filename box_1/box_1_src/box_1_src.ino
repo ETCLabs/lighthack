@@ -46,6 +46,9 @@
  *                                               Arduino platforms. Change
  *                                               OSC subscribe parameters
  *
+ *  2017-10-24   1.0.0.3  Sam Kearney            Add ability to scale encoder
+ *                                               output
+ *
  ******************************************************************************/
 
 /*******************************************************************************
@@ -83,13 +86,18 @@ SLIPEncodedSerial SLIPSerial(Serial);
 #define EDGE_DOWN           ((int32_t)1)
 #define EDGE_UP             ((int32_t)0)
 
-// These define which direction is "forward" for an encoder
 #define FORWARD             0
 #define REVERSE             1
 
 // Change these values to switch which direction increase/decrease pan/tilt
 #define PAN_DIR             FORWARD
 #define TILT_DIR            FORWARD
+
+// Use these values to make the encoder more coarse or fine. This controls
+// the number of wheel "ticks" the device sends to Eos for each tick of the
+// encoder. 1 is the default and the most fine setting. Must be an integer.
+#define PAN_SCALE           1
+#define TILT_SCALE          1
 
 #define SIG_DIGITS          3   // Number of significant digits displayed
 
@@ -480,6 +488,10 @@ void loop()
     // get the updated state of each encoder
     int32_t panMotion = updateEncoder(&panWheel);
     int32_t tiltMotion = updateEncoder(&tiltWheel);
+
+    // Scale the result by a scaling factor
+    panMotion *= PAN_SCALE;
+    tiltMotion *= TILT_SCALE;
 
     // check for next/last updates
     checkButtons();
