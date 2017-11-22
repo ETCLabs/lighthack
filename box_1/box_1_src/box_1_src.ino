@@ -142,7 +142,6 @@ bool updateDisplay = false;
 bool connectedToEos = false;
 
 
-
 /*******************************************************************************
  * Local Functions
  ******************************************************************************/
@@ -177,7 +176,6 @@ void issueSubscribes()
     SLIPSerial.beginPacket();
     subTilt.send(SLIPSerial);
     SLIPSerial.endPacket();
-
 }
 
 /*******************************************************************************
@@ -194,12 +192,14 @@ void issueSubscribes()
 void parsePanUpdate(OSCMessage& msg, int addressOffset)
 {
     panWheel.pos = msg.getOSCData(0)->getFloat();
+    connectedToEos = true; // Update this here just in case we missed the handshake
     updateDisplay = true;
 }
 
 void parseTiltUpdate(OSCMessage& msg, int addressOffset)
 {
     tiltWheel.pos = msg.getOSCData(0)->getFloat();
+    connectedToEos = true; // Update this here just in case we missed the handshake
     updateDisplay = true;
 }
 
@@ -226,6 +226,10 @@ void parseOSCMessage(String& msg)
 
         // Let Eos know we want updates on some things
         issueSubscribes();
+
+        // Make our splash screen go away
+        connectedToEos = true;
+        updateDisplay = true;
     }
     else
     {
@@ -236,7 +240,6 @@ void parseOSCMessage(String& msg)
         oscmsg.route("/eos/out/param/pan", parsePanUpdate);
         oscmsg.route("/eos/out/param/tilt", parseTiltUpdate);
     }
-    connectedToEos = true;
 }
 
 /*******************************************************************************
@@ -250,23 +253,27 @@ void parseOSCMessage(String& msg)
 void displayStatus()
 {
     lcd.clear();
-    if(!connectedToEos) {
-      lcd.setCursor(0,0);
-      lcd.print(String("Box1 v" + VERSION_STRING).c_str());
-      lcd.setCursor(0,1);
-      lcd.print("waiting for eos");
-      updateDisplay = false;
-      return;
-    }
-    // put the cursor at the begining of the first line
-    lcd.setCursor(0, 0);
-    lcd.print("Pan:  ");
-    lcd.print(panWheel.pos, SIG_DIGITS);
 
-    // put the cursor at the begining of the second line
-    lcd.setCursor(0, 1);
-    lcd.print("Tilt: ");
-    lcd.print(tiltWheel.pos, SIG_DIGITS);
+    if (!connectedToEos)
+    {
+      // display a splash message before the Eos connection is open
+      lcd.setCursor(0, 0);
+      lcd.print(String("Box1 v" + VERSION_STRING).c_str());
+      lcd.setCursor(0, 1);
+      lcd.print("waiting for eos");
+    }
+    else
+    {
+      // put the cursor at the begining of the first line
+      lcd.setCursor(0, 0);
+      lcd.print("Pan:  ");
+      lcd.print(panWheel.pos, SIG_DIGITS);
+
+      // put the cursor at the begining of the second line
+      lcd.setCursor(0, 1);
+      lcd.print("Tilt: ");
+      lcd.print(tiltWheel.pos, SIG_DIGITS);
+    }
 
     updateDisplay = false;
 }
