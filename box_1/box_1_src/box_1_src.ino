@@ -36,6 +36,8 @@
  *
  *******************************************************************************
  *
+ *  NOTE: UPDATE VERSION_STRING IN DEFINITIONS BELOW WHEN VERSION NUMBER CHANGES
+ *
  *  Revision History
  *
  *  yyyy-mm-dd   Vxx      By_Who                 Comment
@@ -49,6 +51,8 @@
  *  2017-10-24   1.0.0.3  Sam Kearney            Add ability to scale encoder
  *                                               output
  *
+ *  2017-11-22   1.0.0.4  Hans Hinrichsen        Add splash msg before Eos
+ *                                               connects
  ******************************************************************************/
 
 /*******************************************************************************
@@ -106,6 +110,9 @@ SLIPEncodedSerial SLIPSerial(Serial);
 const String HANDSHAKE_QUERY = "ETCOSC?";
 const String HANDSHAKE_REPLY = "OK";
 
+//See displayScreen() below - limited to 10 chars (after 6 prefix chars)
+const String VERSION_STRING = "1.0.0.4";
+
 /*******************************************************************************
  * Local Types
  ******************************************************************************/
@@ -132,6 +139,7 @@ struct Encoder tiltWheel;
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
 bool updateDisplay = false;
+bool connectedToEos = false;
 
 
 /*******************************************************************************
@@ -184,12 +192,14 @@ void issueSubscribes()
 void parsePanUpdate(OSCMessage& msg, int addressOffset)
 {
     panWheel.pos = msg.getOSCData(0)->getFloat();
+    connectedToEos = true; // Update this here just in case we missed the handshake
     updateDisplay = true;
 }
 
 void parseTiltUpdate(OSCMessage& msg, int addressOffset)
 {
     tiltWheel.pos = msg.getOSCData(0)->getFloat();
+    connectedToEos = true; // Update this here just in case we missed the handshake
     updateDisplay = true;
 }
 
@@ -216,6 +226,10 @@ void parseOSCMessage(String& msg)
 
         // Let Eos know we want updates on some things
         issueSubscribes();
+
+        // Make our splash screen go away
+        connectedToEos = true;
+        updateDisplay = true;
     }
     else
     {
@@ -239,15 +253,27 @@ void parseOSCMessage(String& msg)
 void displayStatus()
 {
     lcd.clear();
-    // put the cursor at the begining of the first line
-    lcd.setCursor(0, 0);
-    lcd.print("Pan:  ");
-    lcd.print(panWheel.pos, SIG_DIGITS);
 
-    // put the cursor at the begining of the second line
-    lcd.setCursor(0, 1);
-    lcd.print("Tilt: ");
-    lcd.print(tiltWheel.pos, SIG_DIGITS);
+    if (!connectedToEos)
+    {
+      // display a splash message before the Eos connection is open
+      lcd.setCursor(0, 0);
+      lcd.print(String("Box1 v" + VERSION_STRING).c_str());
+      lcd.setCursor(0, 1);
+      lcd.print("waiting for eos");
+    }
+    else
+    {
+      // put the cursor at the begining of the first line
+      lcd.setCursor(0, 0);
+      lcd.print("Pan:  ");
+      lcd.print(panWheel.pos, SIG_DIGITS);
+
+      // put the cursor at the begining of the second line
+      lcd.setCursor(0, 1);
+      lcd.print("Tilt: ");
+      lcd.print(tiltWheel.pos, SIG_DIGITS);
+    }
 
     updateDisplay = false;
 }
