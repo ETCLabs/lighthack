@@ -140,7 +140,8 @@ LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
 bool updateDisplay = false;
 bool connectedToEos = false;
-
+uint32_t lastMessageRxTime = 0;
+bool timeoutPingSent = false;
 
 /*******************************************************************************
  * Local Functions
@@ -160,6 +161,7 @@ void issueSubscribes()
     // Add a filter so we don't get spammed with unwanted OSC messages from Eos
     OSCMessage filter("/eos/filter/add");
     filter.add("/eos/out/param/*");
+    filter.add("/eos/out/ping");
     SLIPSerial.beginPacket();
     filter.send(SLIPSerial);
     SLIPSerial.endPacket();
@@ -541,7 +543,35 @@ void loop()
     if (SLIPSerial.endofPacket())
     {
         parseOSCMessage(curMsg);
+        lastMessageRxTime = millis();
+        // We only care about the ping if we haven't heard recently
+        // Clear flag when we get any traffic
+        timeoutPingSent = false;
         curMsg = String();
+    }
+
+    if(lastMessageRxTime > 0) 
+    {
+        uint32_t diff = millis() - lastMessageRxTime;
+        //We first check if it's been too long and we need to time out
+        if(diff > 5000) {
+            connectedToEos = false;
+            lastMessageRxTime = 0;
+            updateDisplay = true;
+            timeoutPingSent = false;
+        }
+
+        //It could be the console is sitting idle. Send a ping once to
+        // double check that it's still there, but only once after 2.5s have passed
+        if(!timeoutPingSent && diff > 2500) 
+        {
+              OSCMessage ping("/eos/ping");
+              ping.add("box1_hello"); // This way we know who is sending the ping
+              SLIPSerial.beginPacket();
+              ping.send(SLIPSerial);
+              SLIPSerial.endPacket();
+              timeoutPingSent = true;
+        }
     }
 
     if (updateDisplay)
