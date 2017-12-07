@@ -113,6 +113,13 @@ const String HANDSHAKE_REPLY = "OK";
 //See displayScreen() below - limited to 10 chars (after 6 prefix chars)
 const String VERSION_STRING = "1.0.0.4";
 
+// Change these values to alter how long we wait before sending an OSC ping
+// to see if Eos is still there, and then finally how long before we
+// disconnect and show the splash screen
+// Values are in milliseconds
+#define PING_AFTER_IDLE_INTERVAL    2500
+#define TIMEOUT_AFTER_IDLE_INTERVAL 5000
+
 /*******************************************************************************
  * Local Types
  ******************************************************************************/
@@ -140,7 +147,7 @@ LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
 bool updateDisplay = false;
 bool connectedToEos = false;
-uint32_t lastMessageRxTime = 0;
+unsigned long lastMessageRxTime = 0;
 bool timeoutPingSent = false;
 
 /*******************************************************************************
@@ -552,9 +559,10 @@ void loop()
 
     if(lastMessageRxTime > 0) 
     {
-        uint32_t diff = millis() - lastMessageRxTime;
+        unsigned long diff = millis() - lastMessageRxTime;
         //We first check if it's been too long and we need to time out
-        if(diff > 5000) {
+        if(diff > TIMEOUT_AFTER_IDLE_INTERVAL) 
+        {
             connectedToEos = false;
             lastMessageRxTime = 0;
             updateDisplay = true;
@@ -563,7 +571,7 @@ void loop()
 
         //It could be the console is sitting idle. Send a ping once to
         // double check that it's still there, but only once after 2.5s have passed
-        if(!timeoutPingSent && diff > 2500) 
+        if(!timeoutPingSent && diff > PING_AFTER_IDLE_INTERVAL) 
         {
               OSCMessage ping("/eos/ping");
               ping.add("box1_hello"); // This way we know who is sending the ping
