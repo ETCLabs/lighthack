@@ -53,6 +53,10 @@
  *
  *  2017-11-22   1.0.0.4  Hans Hinrichsen        Add splash msg before Eos
  *                                               connects
+ *
+ *  2017-12-07   1.0.0.5  Hans Hinrichsen        Added timeout to disconnect
+ *                                               and show splash screen again
+ *
  ******************************************************************************/
 
 /*******************************************************************************
@@ -111,7 +115,7 @@ const String HANDSHAKE_QUERY = "ETCOSC?";
 const String HANDSHAKE_REPLY = "OK";
 
 //See displayScreen() below - limited to 10 chars (after 6 prefix chars)
-const String VERSION_STRING = "1.0.0.4";
+const String VERSION_STRING = "1.0.0.5";
 
 // Change these values to alter how long we wait before sending an OSC ping
 // to see if Eos is still there, and then finally how long before we
