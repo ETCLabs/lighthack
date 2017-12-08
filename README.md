@@ -15,10 +15,11 @@ This is the first Arduino sketch to load - it helps to ensure that the Arduino i
 ## #lighthack box 1
 **#lighthack box 1** is a kit project with two encoders, three buttons and a 2x20 display. This project is located in the box_1 subfolder. This folder contains an assembly instructions document which is a good jumping-off point. It also contains the Arduino sketch and other supporting documentation.
 
+[Supported OSC Commands](https://github.com/ETCLabs/EosSyncLib/blob/master/Supported%20OSC%20Commands.pdf)
+
 ## About this ETCLabs Project
 #lighthack projects are designed to interact with ETC products, but they are not official ETC hardware or software. For challenges using, integrating, compiling, or modifying items in this project, we encourage posting on the [Issues page](https://github.com/ETCLabs/lighthack/issues) or on the [#lighthack forum](https://community.etcconnect.com/etclabs/f/lighthack). Again, #lighthack is a community-supported initiative, and the #lighthacking community is the best place to ask for help!
 
 ## Dependencies
 Requires the Arduino OSC parsing library maintained by the great folks over at [CNMAT](https://github.com/CNMAT/OSC). The assembly instructions documents contain details on how to add this to your Arduino project.
 
-[Supported OSC Commands](https://github.com/ETCLabs/EosSyncLib/blob/master/Supported%20OSC%20Commands.pdf)
