@@ -13,7 +13,7 @@ _Support for XPe-based consoles or XP computers is not planned for this project.
 This is the first Arduino sketch to load - it helps to ensure that the Arduino is communicating successfully with Eos. This is also a good point to return to if you want to re-confirm the Arduino-Eos connection later on.
 
 ## #lighthack box 1
-**#lighthack box 1** is a kit project with two encoders, three buttons and a 2x20 display. This kit is available for purchase directly from ETC's [US](https://shop.etcconnect.com/) and [EU](https://shop.etcconnect.eu/) online shops, but you can also find all of the parts directly from suppliers online. This project is located in the box_1 subfolder. This folder contains an assembly instructions document which is a good jumping-off point. It also contains the Arduino sketch and other supporting documentation.
+**#lighthack box 1** is a kit project with two encoders, three buttons and a 2x20 display. This kit is available for purchase directly from ETC's [US](https://shop.etcconnect.com/) and [EU](https://shop.etcconnect.eu/) online shops, but you can also find all of the parts directly from suppliers online. This project is located in the box_1 subfolder. This folder contains an assembly instructions document which also contains the parts list. It also contains the Arduino sketch and other supporting documentation.
 
 [Supported OSC Commands](https://github.com/ETCLabs/EosSyncLib/blob/master/Supported%20OSC%20Commands.pdf)
 
