@@ -73,6 +73,14 @@ Connect the `3.3v` and `Gnd` pins to the respective Arduino Pins using the jumpe
 ![Wiring Diagram](https://i.imgur.com/ZD6JGy8.png)
 Plug in the Nunchuk, and then powerup the Arduino
 
+## Usage
+
+Press Z as ETC Eos "Next" and C as "Last".
+
+Use joystick to adjust Pan/Tilt on moving fixtures 
+
+Hold down both Z & C for "fine" mode of movement
+
 ## Guide to Arduino LEDs
 
 ![](https://i.imgur.com/3if1ke8.png)
