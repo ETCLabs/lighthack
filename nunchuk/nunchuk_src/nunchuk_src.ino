@@ -160,15 +160,15 @@ void sendKeyPress(String key)
  ******************************************************************************/
 void checkButtons()
 {
-  if (chuck.buttonZ && !chuck.buttonC && zLastPressed < (millis()-400)) {
-    delay(500);
+  if (chuck.buttonZ && !chuck.buttonC && zLastPressed < (millis()-500)) {
+    delay(1000);
     if (!chuck.buttonC) { //If after 300 seconds the C button isn't depressed it means this isn't a false trigger as they try and push both buttons together - so go ahead and send a keypress
       sendKeyPress("NEXT");
       zLastPressed = millis();
     }
   }
-  if (chuck.buttonC && !chuck.buttonZ && cLastPressed < (millis()-400)) {
-    delay(500);
+  if (chuck.buttonC && !chuck.buttonZ && cLastPressed < (millis()-500)) {
+    delay(1000);
     if (!chuck.buttonZ) { //If after 500 seconds the Z button isn't depressed it means this isn't a false trigger as they try and push both buttons together - so go ahead and send a keypress
       sendKeyPress("LAST");
       cLastPressed = millis();
