@@ -57,9 +57,10 @@ const String VERSION_STRING = "1.0.0.5";
 #define TIMEOUT_AFTER_IDLE_INTERVAL 5000
 
 /*******************************************************************************
+
  * Global Variables
  ******************************************************************************/
-
+unsigned long zLastPressed, cLastPressed;
 unsigned long lastMessageRxTime = 0;
 bool timeoutPingSent = false;
 
@@ -132,19 +133,21 @@ void sendWheelMove(int x, int y)
  * Return Value: void
  *
  ******************************************************************************/
-void sendKeyPress(bool down, String key)
+void sendKeyPress(String key)
 {
   key = "/eos/key/" + key;
   OSCMessage keyMsg(key.c_str());
-
-  if (down)
-    keyMsg.add(EDGE_DOWN);
-  else
-    keyMsg.add(EDGE_UP);
-
+  keyMsg.add(EDGE_DOWN);
   SLIPSerial.beginPacket();
   keyMsg.send(SLIPSerial);
   SLIPSerial.endPacket();
+  
+  OSCMessage keyMsgUp(key.c_str());
+  keyMsgUp.add(EDGE_UP);
+  SLIPSerial.beginPacket();
+  keyMsgUp.send(SLIPSerial);
+  SLIPSerial.endPacket();
+  
 }
 
 /*******************************************************************************
@@ -157,20 +160,23 @@ void sendKeyPress(bool down, String key)
  ******************************************************************************/
 void checkButtons()
 {
-  // Has the button state changed
-  if (chuck.buttonZ && !chuck.buttonC) {
+  if (chuck.buttonZ && !chuck.buttonC && zLastPressed < (millis()-400)) {
     delay(500);
     if (!chuck.buttonC) { //If after 300 seconds the C button isn't depressed it means this isn't a false trigger as they try and push both buttons together - so go ahead and send a keypress
-      sendKeyPress(true, "NEXT");
-      sendKeyPress(false, "NEXT");
+      sendKeyPress("NEXT");
+      zLastPressed = millis();
     }
   }
-  if (chuck.buttonC && !chuck.buttonZ) {
+  if (chuck.buttonC && !chuck.buttonZ && cLastPressed < (millis()-400)) {
     delay(500);
     if (!chuck.buttonZ) { //If after 500 seconds the Z button isn't depressed it means this isn't a false trigger as they try and push both buttons together - so go ahead and send a keypress
-      sendKeyPress(true, "LAST");
-      sendKeyPress(false, "LAST");
+      sendKeyPress("LAST");
+      cLastPressed = millis();
     }
+  }
+  if (chuck.buttonC && chuck.buttonZ) {
+    zLastPressed = millis()+200;
+    cLastPressed = millis()+200; //Make an even bigger delay after you release both keys to stop it jumping straight to a button 
   }
 }
 
@@ -203,6 +209,8 @@ void setup()
 
   chuck.begin();
   chuck.update();
+  zLastPressed = millis();
+  cLastPressed = millis();
   chuck.calibrateJoy(); //Calibrate the 0 of the joystick
 }
 
