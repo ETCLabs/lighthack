@@ -63,6 +63,10 @@ const String VERSION_STRING = "1.0.0.5";
 unsigned long zLastPressed, cLastPressed;
 unsigned long lastMessageRxTime = 0;
 bool timeoutPingSent = false;
+int xCorrectionFactor = 0;
+int yCorrectionFactor = 0;
+int currentX;
+int currentY;
 
 /*******************************************************************************
  * Given an unknown OSC message we check to see if it's a handshake message.
@@ -212,6 +216,11 @@ void setup()
   zLastPressed = millis();
   cLastPressed = millis();
   chuck.calibrateJoy(); //Calibrate the 0 of the joystick
+  if (chuck.readJoyX() != 0 || chuck.readJoyY() != 0) {
+   //Calibration has failed (seems to be happening on certain Nunchuks) - setup a correction factor by taking the current reading and subtracting it from future ones. 
+    xCorrectionFactor = chuck.readJoyX();  
+    yCorrectionFactor = chuck.readJoyY();
+  }
 }
 
 /*******************************************************************************
@@ -235,8 +244,11 @@ void loop()
   checkButtons();
 
   // check satus of chuck joystick
-  if (chuck.readJoyX() != 0 || chuck.readJoyY() != 0) {
-    sendWheelMove(chuck.readJoyX(), chuck.readJoyY());
+  currentX = chuck.readJoyX() - xCorrectionFactor;
+  currentY = chuck.readJoyY() - yCorrectionFactor;
+  
+  if (currentX != 0 || currentY != 0) {
+    sendWheelMove(currentX, currentY);
   }
 
   // Then we check to see if any OSC commands have come from Eos
