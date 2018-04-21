@@ -216,6 +216,8 @@ void setup()
   zLastPressed = millis();
   cLastPressed = millis();
   chuck.calibrateJoy(); //Calibrate the 0 of the joystick
+  delay(2000); //Wait for joystick to ensure fully loaded up
+  chuck.update();
   if (chuck.readJoyX() != 0 || chuck.readJoyY() != 0) {
    //Calibration has failed (seems to be happening on certain Nunchuks) - setup a correction factor by taking the current reading and subtracting it from future ones. 
     xCorrectionFactor = chuck.readJoyX();  
