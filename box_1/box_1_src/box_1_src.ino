@@ -60,6 +60,8 @@
     2018-10-25   2.0.0.0  Richard Thompson       Generalised to support other
                                                  ETC consoles
 
+    2018-10-25   2.0.0.1  Richard Thompson       Add basic support for ColorSource
+
  ******************************************************************************/
 
 /*******************************************************************************
@@ -119,7 +121,7 @@ const String HANDSHAKE_QUERY = "ETCOSC?";
 const String HANDSHAKE_REPLY = "OK";
 
 //See displayScreen() below - limited to 10 chars (after 6 prefix chars)
-#define VERSION_STRING      "2.0.0.0"
+#define VERSION_STRING      "2.0.0.1"
 
 #define BOX_NAME_STRING     "box1"
 
@@ -153,6 +155,7 @@ enum ConsoleType
   ConsoleNone,
   ConsoleEos,
   ConsoleCobalt,
+  ConsoleColorSource
 };
 
 /*******************************************************************************
@@ -250,6 +253,13 @@ void parseCobalt(OSCMessage& msg, int addressOffset)
   updateDisplay = true;
 }
 
+void parseColorSource(OSCMessage& msg, int addressOffset)
+{
+  // ColorSource doesn't currently send anything other than ping
+  connectedToConsole = ConsoleColorSource;
+  updateDisplay = true;
+}
+
 /*******************************************************************************
    Given an unknown OSC message we check to see if it's a handshake message.
    If it's a handshake we issue a subscribe, otherwise we begin route the OSC
@@ -274,7 +284,7 @@ void parseOSCMessage(String& msg)
     // An Eos would do nothing until subscribed
     // Let Eos know we want updates on some things
     issueEosSubscribes();
-    
+
     updateDisplay = true;
   }
   else
@@ -288,6 +298,8 @@ void parseOSCMessage(String& msg)
     if (oscmsg.route("/eos", parseEos))
       return;
     if (oscmsg.route("/cobalt", parseCobalt))
+      return;
+    if (oscmsg.route("/cs", parseColorSource))
       return;
   }
 }
@@ -337,6 +349,17 @@ void displayStatus()
         lcd.setCursor(12, 1);
         lcd.print("Tilt");
       } break;
+
+    case ConsoleColorSource:
+      {
+        lcd.setCursor(2, 0);
+        lcd.print("ColorSource");
+        lcd.setCursor(0, 1);
+        lcd.print("Pan");
+        lcd.setCursor(12, 1);
+        lcd.print("Tilt");
+      } break;
+
   }
 
   updateDisplay = false;
@@ -462,6 +485,24 @@ void sendCobaltWheelMove(WHEEL_TYPE type, float ticks)
   sendOscMessage(wheelMsg, ticks);
 }
 
+void sendColorSourceWheelMove(WHEEL_TYPE type, float ticks)
+{
+  String wheelMsg("/cs/param");
+
+  if (type == PAN)
+    wheelMsg.concat("/pan/wheel");
+  else if (type == TILT)
+    wheelMsg.concat("/tilt/wheel");
+  else
+    // something has gone very wrong
+    return;
+
+  if (digitalRead(SHIFT_BTN) != LOW)
+    ticks = ticks * 2;
+
+  sendOscMessage(wheelMsg, ticks);
+}
+
 /******************************************************************************/
 
 void sendWheelMove(WHEEL_TYPE type, float ticks)
@@ -474,6 +515,9 @@ void sendWheelMove(WHEEL_TYPE type, float ticks)
       break;
     case ConsoleCobalt:
       sendCobaltWheelMove(type, ticks);
+      break;
+    case ConsoleColorSource:
+      sendColorSourceWheelMove(type, ticks);
       break;
   }
 }
