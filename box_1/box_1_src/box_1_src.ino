@@ -523,16 +523,16 @@ void sendWheelMove(WHEEL_TYPE type, float ticks)
 }
 
 /*******************************************************************************
-   Sends a message to Eos informing them of a key press.
+   Sends a message to the console informing them of a key press.
 
    Parameters:
     down - whether a key has been pushed down (true) or released (false)
-    key - the key that has moved
+    key - the OSC key name that has moved
 
    Return Value: void
 
  ******************************************************************************/
-void sendKeyPress(bool down, String key)
+void sendKeyPress(bool down, const String &key)
 {
   String keyAddress;
   switch (connectedToConsole)
@@ -543,6 +543,9 @@ void sendKeyPress(bool down, String key)
       break;
     case ConsoleCobalt:
       keyAddress = "/cobalt/key/" + key;
+      break;
+    case ConsoleColorSource:
+      keyAddress = "/cs/key/" + key;
       break;
   }
   OSCMessage keyMsg(keyAddress.c_str());
@@ -558,49 +561,50 @@ void sendKeyPress(bool down, String key)
 }
 
 /*******************************************************************************
-   Checks the status of all the buttons relevant to Eos (i.e. Next & Last)
+   Checks the status of all the relevant buttons (i.e. Next & Last)
 
    NOTE: This does not check the shift key. The shift key is used in tandem with
-   the encoder to determine coarse/fine mode and thus does not report to Eos
-   directly.
+   the encoder to determine coarse/fine mode and thus does not report directly.
 
    Parameters: none
 
    Return Value: void
 
  ******************************************************************************/
+
 void checkButtons()
 {
-  static int nextKeyState = HIGH;
-  static int lastKeyState = HIGH;
+  // OSC configuration
+  const int keyCount = 2;
+  const int keyPins[2] = {NEXT_BTN, LAST_BTN};
+  const String keyNames[4] = {
+    "NEXT", "LAST",
+    "soft6", "soft4"
+  };
 
-  // Has the button state changed
-  if (digitalRead(NEXT_BTN) != nextKeyState)
-  {
-    // Notify Eos of this key press
-    if (nextKeyState == LOW)
-    {
-      sendKeyPress(false, "NEXT");
-      nextKeyState = HIGH;
-    }
-    else
-    {
-      sendKeyPress(true, "NEXT");
-      nextKeyState = LOW;
-    }
-  }
+  static int keyStates[2] = {HIGH, HIGH};
 
-  if (digitalRead(LAST_BTN) != lastKeyState)
+  // Eos and Cobalt buttons are the same
+  // ColorSource is different
+  int firstKey = (connectedToConsole == ConsoleColorSource) ? 2 : 0;
+
+  // Loop over the buttons
+  for (int keyNum = 0; keyNum < keyCount; ++keyNum)
   {
-    if (lastKeyState == LOW)
+    // Has the button state changed
+    if (digitalRead(keyPins[keyNum]) != keyStates[keyNum])
     {
-      sendKeyPress(false, "LAST");
-      lastKeyState = HIGH;
-    }
-    else
-    {
-      sendKeyPress(true, "LAST");
-      lastKeyState = LOW;
+      // Notify console of this key press
+      if (keyStates[keyNum] == LOW)
+      {
+        sendKeyPress(false, keyNames[firstKey + keyNum]);
+        keyStates[keyNum] = HIGH;
+      }
+      else
+      {
+        sendKeyPress(true, keyNames[firstKey + keyNum]);
+        keyStates[keyNum] = LOW;
+      }
     }
   }
 }
