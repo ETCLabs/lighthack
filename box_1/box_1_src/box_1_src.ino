@@ -285,8 +285,10 @@ void parseOSCMessage(String& msg)
     // route pan/tilt messages to the relevant update function
 
     // Try the various OSC routes
-    if (!oscmsg.route("/eos", parseEos))
-      oscmsg.route("/cobalt", parseCobalt);
+    if (oscmsg.route("/eos", parseEos))
+      return;
+    if (oscmsg.route("/cobalt", parseCobalt))
+      return;
   }
 }
 
@@ -328,9 +330,13 @@ void displayStatus()
 
     case ConsoleCobalt:
       {
-        lcd.setCursor(0, 0);
+        lcd.setCursor(7, 0);
         lcd.print("Cobalt");
-      }
+        lcd.setCursor(0, 1);
+        lcd.print("Pan");
+        lcd.setCursor(12, 1);
+        lcd.print("Tilt");
+      } break;
   }
 
   updateDisplay = false;
@@ -408,6 +414,16 @@ int8_t updateEncoder(struct Encoder* encoder)
    Return Value: void
 
  ******************************************************************************/
+
+void sendOscMessage(const String &address, float value)
+{
+  OSCMessage msg(address.c_str());
+  msg.add(value);
+  SLIPSerial.beginPacket();
+  msg.send(SLIPSerial);
+  SLIPSerial.endPacket();
+}
+
 void sendEosWheelMove(WHEEL_TYPE type, float ticks)
 {
   String wheelMsg("/eos/wheel");
@@ -425,11 +441,7 @@ void sendEosWheelMove(WHEEL_TYPE type, float ticks)
     // something has gone very wrong
     return;
 
-  OSCMessage wheelUpdate(wheelMsg.c_str());
-  wheelUpdate.add(ticks);
-  SLIPSerial.beginPacket();
-  wheelUpdate.send(SLIPSerial);
-  SLIPSerial.endPacket();
+  sendOscMessage(wheelMsg, ticks);
 }
 
 void sendCobaltWheelMove(WHEEL_TYPE type, float ticks)
@@ -447,11 +459,7 @@ void sendCobaltWheelMove(WHEEL_TYPE type, float ticks)
   if (digitalRead(SHIFT_BTN) != LOW)
     ticks = ticks * 16;
 
-  OSCMessage wheelUpdate(wheelMsg.c_str());
-  wheelUpdate.add(ticks);
-  SLIPSerial.beginPacket();
-  wheelUpdate.send(SLIPSerial);
-  SLIPSerial.endPacket();
+  sendOscMessage(wheelMsg, ticks);
 }
 
 /******************************************************************************/
