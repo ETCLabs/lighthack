@@ -7,7 +7,7 @@ The #lighthack project is centered around Arduino-based hardware devices that us
 
 Eos supports this functionality on Win7e-based consoles and ETCnomad for Windows in software version 2.6.1 and newer, and on ETCnomad for Mac in software version 2.7.0 and newer.
 
-_Support for XPe-based consoles or XP computers is not planned for this project. Many XPe-based consoles can be [upgraded to Win7e](http://www.etcconnect.com/Support/Articles/Windows-7-Upgrade-Eligibility.aspx) to make them compatible with #lighthack._
+_Support for XPe-based consoles or XP computers is not planned for this project. Many XPe-based consoles can be [upgraded to Win7e](https://support.etcconnect.com/ETC/Consoles/Eos_Family/Ion/Ion_Windows_7_Upgrade_Eligibility) to make them compatible with #lighthack._
 
 ## test tools/usb_test
 This is the first Arduino sketch to load - it helps to ensure that the Arduino is communicating successfully with Eos. This is also a good point to return to if you want to re-confirm the Arduino-Eos connection later on.
