@@ -5,9 +5,9 @@ This repository contains the source and documentation for **#lighthack**, an edu
 
 The #lighthack project is centered around Arduino-based hardware devices that users assemble from scratch. The Arduino connects via a USB COM port and then communicates via OSC with ETC's Eos software.
 
-Eos supports this functionality on Win7e-based consoles and ETCnomad for Windows in software version 2.6.1 and newer, and on ETCnomad for Mac in software version 2.7.0 and newer.
+Eos supports this functionality on consoles running Windows 7 embedded or higher and ETCnomad for Windows in software version 2.6.1 and newer, and on ETCnomad for Mac in software version 2.7.0 and newer.
 
-_Support for XPe-based consoles or XP computers is not planned for this project. Many XPe-based consoles can be [upgraded to Win7e](https://support.etcconnect.com/ETC/Consoles/Eos_Family/Ion/Ion_Windows_7_Upgrade_Eligibility) to make them compatible with #lighthack._
+_Support for XPe-based consoles or XP computers is not planned for this project. If you do not know the version of embedded Windows your console uses, [check this link](https://support.etcconnect.com/ETC/Consoles/General/What_Version_of_Windows_is_my_Console_Running) for identifying information._
 
 ## test tools/usb_test
 This is the first Arduino sketch to load - it helps to ensure that the Arduino is communicating successfully with Eos. This is also a good point to return to if you want to re-confirm the Arduino-Eos connection later on.
